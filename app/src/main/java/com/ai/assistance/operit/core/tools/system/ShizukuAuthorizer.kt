@@ -170,15 +170,18 @@ class ShizukuAuthorizer {
                     return false
                 }
 
-                // 方法3: 尝试获取Shizuku UID (如果可以获取有效UID，说明服务在运行)
+                // 方法3: 尝试获取Shizuku UID (如果Uid为2000，说明服务以adb权限运行，如果为0，说明以root权限运行)
                 try {
                     val uid = Shizuku.getUid()
-                    if (uid > 0) {
+                    if (uid == 0 || uid == 2000) {
                         isServiceAvailable = true
                         lastServiceErrorMessage = ""
+                        AppLogger.i(TAG, "Shizuku 正在以 ${if (uid == 0) "Root" else "Shell"} 权限运行")
                         return true
                     }
+                    
                     lastServiceErrorMessage = "Invalid Shizuku UID: $uid"
+                    AppLogger.e(TAG, lastServiceErrorMessage)
                     return false
                 } catch (e: Exception) {
                     AppLogger.e(TAG, "UID check failed", e)
@@ -191,7 +194,7 @@ class ShizukuAuthorizer {
                 lastServiceErrorMessage = "Critical error: ${e.message}"
                 return false
             }
-        }
+
 
         /**
          * 检查应用是否有Shizuku权限
